@@ -1,7 +1,6 @@
 *
+lives/claim_coin_live.py
 !.gitignore
-!__pycache__
 !ADB/
-!img/
 !lives/
-*.py
+!*.py
