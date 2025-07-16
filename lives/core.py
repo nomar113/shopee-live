@@ -54,7 +54,7 @@ class Live:
     
     def claimCoin(self):
         text = self.extractText(750, 305, 285, 110)
-        match = re.search(r'Resg', text)
+        match = re.search(r'Res', text)
         if match:
             ADB.tap(960, 380)
 
