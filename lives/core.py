@@ -41,7 +41,7 @@ class Live:
         return len(loc[0]) > 0
     
     def waitToReceiveCoins(self):
-        text = self.extractText(750, 305, 285, 110)
+        text = self.extractText(750, 305, 285, 230, "waitToReceiveCoins")
         match = re.search(r'(\d{1,2}):(\d{2})', text)
         if match:
             minutes = int(match.group(1))
@@ -53,25 +53,43 @@ class Live:
             time.sleep(total_seconds)
     
     def claimCoin(self):
-        text = self.extractText(750, 305, 285, 110)
-        match = re.search(r'Res', text)
-        if match:
-            ADB.tap(960, 380)
+        adb = ADB(False)
+        adb.capture_screenshot()
+        screenshot_path = "./img/screenshot.png"
+        claim_buttom_path = "./img/lives/claim_buttom_v2.png"
+        show_logs = True
+        screenshot = cv2.imread(screenshot_path, cv2.IMREAD_COLOR)
+        claim_buttom = cv2.imread(claim_buttom_path, cv2.IMREAD_COLOR)
+        if screenshot is None:
+            if show_logs:
+                raise FileNotFoundError(f"Não foi possível carregar a imagem: {screenshot_path}")
+        if claim_buttom is None:
+            if show_logs:
+                raise FileNotFoundError(f"Não foi possível carregar o coin: {coin_path}")
+        gray_screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
+        gray_claim_buttom = cv2.cvtColor(claim_buttom, cv2.COLOR_BGR2GRAY)
+        res = cv2.matchTemplate(gray_screenshot, gray_claim_buttom, cv2.TM_CCOEFF_NORMED)
+        loc = np.where(res >= 0.95)
+        print(loc)
+        print(len(loc))
+        if (len(loc) == 2 and  len(loc[0]) > 0):
+            print(loc[1][0], loc[0][0])
+            ADB.tap(loc[1][0], loc[0][0])
 
-    def extractText(self, x, y, w, h):
+    def extractText(self, x, y, w, h, name):
         screenshot_path = "./img/screenshot.png"
         img = cv2.imread(screenshot_path)
         roi = img[y:y+h, x:x+w]
-        cv2.imwrite('recorte_tempo.png', roi)
+        cv2.imwrite(name + 'recorte_tempo.png', roi)
         gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY)
         _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY_INV)
-        cv2.imwrite('recorte_tempo_thresh.png', thresh)
+        cv2.imwrite(name + 'recorte_tempo_thresh.png', thresh)
         text = pytesseract.image_to_string(thresh) 
         print("Texto extraído:", text.strip())
         return text
     
     def validateClaimCoin(self):
-        text = self.extractText(207, 1854, 680, 100)
+        text = self.extractText(207, 1854, 680, 100, "validateClaimCoin")
         match = re.search(r'Resgate falhou', text)
         if match:
             adb = ADB(False)

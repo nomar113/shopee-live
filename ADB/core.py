@@ -18,7 +18,7 @@ class ADB:
             print(f"Erro ao capturar screenshot: {process.stderr.decode()}")
 
     def scrool(self):
-        command = ["adb", "shell", "input", "swipe", "500", "1600", "500", "300", "300"]
+        command = ["adb", "shell", "su", "-c", "input", "swipe", "500", "1600", "500", "300", "300"]
         try:
             result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if self.show_logs:
@@ -36,7 +36,7 @@ class ADB:
                 print("Errors:", error.stderr)
 
     def tap(x, y):
-        command = ["adb", "shell", "input", "tap", str(x), str(y)]
+        command = ["adb", "shell", "su", "-c", "input", "tap", str(x), str(y)]
         try:
             result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             print("Tap: ",x, y)
