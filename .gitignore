@@ -4,3 +4,4 @@ lives/claim_coin_live.py
 !ADB/
 !lives/
 !*.py
+!requirements.txt

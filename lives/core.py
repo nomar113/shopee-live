@@ -41,7 +41,7 @@ class Live:
         return len(loc[0]) > 0
     
     def waitToReceiveCoins(self):
-        text = self.extractText(750, 305, 285, 230, "waitToReceiveCoins")
+        text = self.extractText(750, 200, 285, 430, "waitToReceiveCoins")
         match = re.search(r'(\d{1,2}):(\d{2})', text)
         if match:
             minutes = int(match.group(1))
