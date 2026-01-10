@@ -1,7 +1,17 @@
+# Ignora tudo
 *
-lives/claim_coin_live.py
+
+# Arquivos e pastas permitidos
 !.gitignore
+!requirements.txt
+!*.py
+
+# Pastas
 !ADB/
 !lives/
-!*.py
-!requirements.txt
+!img/
+!img/lives/
+
+# Arquivos PNG específicos
+!img/lives/claim_buttom_v2.png
+!img/lives/coin_v2.png
