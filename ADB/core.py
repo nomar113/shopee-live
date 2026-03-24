@@ -1,50 +1,62 @@
+import logging
 import os
 import subprocess
 
+logger = logging.getLogger(__name__)
+
+SCREENSHOT_DIR = "./img"
+SCREENSHOT_PATH = os.path.join(SCREENSHOT_DIR, "screenshot.png")
+
+SWIPE_START_X = 500
+SWIPE_START_Y = 1600
+SWIPE_END_X = 500
+SWIPE_END_Y = 300
+SWIPE_DURATION_MS = 300
+
+
 class ADB:
-    def __init__(self, show_logs = False):
-        self.show_logs = show_logs
+    def capture_screenshot(self, output_path: str = SCREENSHOT_PATH) -> bool:
+        """Captura screenshot do dispositivo Android via ADB."""
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        with open(output_path, "wb") as f:
+            process = subprocess.run(
+                ["adb", "exec-out", "screencap", "-p"],
+                stdout=f,
+                stderr=subprocess.PIPE,
+            )
+        if process.returncode != 0:
+            logger.error("Erro ao capturar screenshot: %s", process.stderr.decode())
+            return False
+        logger.debug("Screenshot salvo em %s", output_path)
+        return True
 
-    def capture_screenshot(self):
-        output_dir = "./img"
-        output_file = os.path.join(output_dir, "screenshot.png")
-        print("screenshot")
-        os.makedirs(output_dir, exist_ok=True)
-        with open(output_file, "wb") as f:
-            process = subprocess.run(["adb", "exec-out", "screencap", "-p"], stdout=f, stderr=subprocess.PIPE)
-        if process.returncode == 0 and self.show_logs:
-            print(f"Screenshot salvo como {output_file}")
-        elif self.show_logs:
-            print(f"Erro ao capturar screenshot: {process.stderr.decode()}")
+    def scroll_up(self) -> None:
+        """Executa swipe de baixo para cima no dispositivo."""
+        self._run_shell_command(
+            "input",
+            "swipe",
+            str(SWIPE_START_X),
+            str(SWIPE_START_Y),
+            str(SWIPE_END_X),
+            str(SWIPE_END_Y),
+            str(SWIPE_DURATION_MS),
+        )
 
-    def scrool(self):
-        command = ["adb", "shell", "input", "swipe", "500", "1600", "500", "300", "300"]
-        try:
-            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            if self.show_logs:
-                print("Scrool to up!")
-            if result.stdout:
-                if self.show_logs:
-                    print("Output:", result.stdout)
-            if result.stderr:
-                if self.show_logs:
-                    print("Errors:", result.stderr)
-        except subprocess.CalledProcessError as error:
-            if self.show_logs:
-                print("Error executing the command:", error)
-                print("Output:", error.stdout)
-                print("Errors:", error.stderr)
-
-    def tap(x, y):
+    @staticmethod
+    def tap(x: int, y: int) -> None:
+        """Executa tap nas coordenadas (x, y) do dispositivo."""
         command = ["adb", "shell", "input", "tap", str(x), str(y)]
         try:
-            result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-            print("Tap: ",x, y)
-            if result.stdout:
-                print("Output:", result.stdout)
-            if result.stderr:
-                print("Errors:", result.stderr)
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            logger.debug("Tap: %d, %d", x, y)
         except subprocess.CalledProcessError as error:
-            print("Error executing the command:", error)
-            print("Output:", error.stdout)
-            print("Errors:", error.stderr)
+            logger.error("Erro ao executar tap(%d, %d): %s", x, y, error)
+
+    @staticmethod
+    def _run_shell_command(*args: str) -> None:
+        """Executa comando adb shell genérico."""
+        command = ["adb", "shell", *args]
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+        except subprocess.CalledProcessError as error:
+            logger.error("Erro ao executar comando ADB: %s", error)

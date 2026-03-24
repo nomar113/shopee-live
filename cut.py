@@ -1,23 +1,29 @@
+"""Utilitário interativo para recortar templates de screenshots."""
+
+import sys
+
 import cv2
 
-# Carrega a imagem da screenshot
-screenshot = cv2.imread("./img/screenshot.png", cv2.IMREAD_UNCHANGED)
+SCREENSHOT_PATH = "./img/screenshot.png"
+OUTPUT_PATH = "claim_button.png"
+WINDOW_TITLE = "Selecione a região do template"
 
-if screenshot is None:
-    print("Erro ao carregar a imagem 'screenshot.png'. Verifique o caminho e o nome do arquivo.")
-    exit(1)
 
-# Exibe a imagem e permite selecionar a região de interesse (ROI) interativamente
-roi = cv2.selectROI("Selecione o shopee_candy", screenshot, showCrosshair=True, fromCenter=False)
-cv2.destroyWindow("Selecione o shopee_candy")
+def crop_template() -> None:
+    """Abre GUI para selecionar e recortar região de um screenshot."""
+    screenshot = cv2.imread(SCREENSHOT_PATH, cv2.IMREAD_UNCHANGED)
+    if screenshot is None:
+        print(f"Erro ao carregar a imagem '{SCREENSHOT_PATH}'.")
+        sys.exit(1)
 
-# A ROI retornada é uma tupla (x, y, w, h)
-x, y, w, h = roi
+    roi = cv2.selectROI(WINDOW_TITLE, screenshot, showCrosshair=True, fromCenter=False)
+    cv2.destroyWindow(WINDOW_TITLE)
 
-# Recorta a imagem usando slicing do NumPy
-candy_cropped = screenshot[y:y+h, x:x+w]
+    x, y, w, h = roi
+    cropped = screenshot[y : y + h, x : x + w]
+    cv2.imwrite(OUTPUT_PATH, cropped)
+    print(f"Template salvo como '{OUTPUT_PATH}'.")
 
-# Salva a imagem recortada para uso posterior (por exemplo, no matchTemplate)
-cv2.imwrite("claim_button.png", candy_cropped)
 
-print("Imagem recortada salva como 'claim_button.png'.")
+if __name__ == "__main__":
+    crop_template()

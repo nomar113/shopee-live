@@ -1,35 +1,40 @@
 import asyncio
+import logging
+
 from ADB import ADB
 from lives import Live
 
-async def main_loop(live, adb):
-    cont_lives_scroll = 0
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger(__name__)
+
+MAX_SCROLLS_BEFORE_RESET = 10
+
+
+async def main_loop(live: Live) -> None:
+    """Loop principal que percorre lives coletando moedas."""
+    scroll_count = 0
     while True:
-        live.claimCoin()
-        if not live.hasCoin():
-            live.nextLive()
-            live.loadButtoms()
-            cont_lives_scroll += 1
-            if cont_lives_scroll > 10:
-                live.clickLiveHome()
-                cont_lives_scroll = 0
+        live.claim_coin()
+
+        if not live.has_coin():
+            live.next_live()
+            live.wait_buttons_load()
+            scroll_count += 1
+            if scroll_count > MAX_SCROLLS_BEFORE_RESET:
+                live.click_live_home()
+                scroll_count = 0
         else:
-            live.waitToReceiveCoins()
-            live.claimCoin()
+            live.wait_to_receive_coins()
+            live.claim_coin()
+
         await asyncio.sleep(0.1)
 
-async def timeout_action():
-    await asyncio.sleep(3)
-    print("⏰ 3 segundos se passaram! Executando ação...")
-    print("Comando executado!")
 
-async def main():
-    live = Live()
+async def main() -> None:
     adb = ADB()
-    await asyncio.gather(
-        main_loop(live, adb),
-        timeout_action()
-    )
+    live = Live(adb)
+    await main_loop(live)
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -1,1 +1,1 @@
-from .core import ADB
+from .core import ADB as ADB

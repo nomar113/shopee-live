@@ -9,6 +9,8 @@
 # Pastas
 !ADB/
 !lives/
+!vision/
+!shopee-candy/
 !img/
 !img/lives/
 
@@ -16,5 +18,6 @@
 !img/lives/claim_buttom_v2.png
 !img/lives/coin_v2.png
 
-#Claude Code
+# Configuração
+!pyproject.toml
 !CLAUDE.md

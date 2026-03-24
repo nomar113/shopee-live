@@ -1,1 +1,1 @@
-from .core import Live
+from .core import Live as Live
