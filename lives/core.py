@@ -69,12 +69,13 @@ class Live:
         gray_screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
         gray_claim_buttom = cv2.cvtColor(claim_buttom, cv2.COLOR_BGR2GRAY)
         res = cv2.matchTemplate(gray_screenshot, gray_claim_buttom, cv2.TM_CCOEFF_NORMED)
-        loc = np.where(res >= 0.95)
+        loc = np.where(res >= 0.80)
         print(loc)
         print(len(loc))
         if (len(loc) == 2 and  len(loc[0]) > 0):
             print(loc[1][0], loc[0][0])
             ADB.tap(loc[1][0], loc[0][0])
+        self.validateClaimCoin()
 
     def extractText(self, x, y, w, h, name):
         screenshot_path = "./img/screenshot.png"

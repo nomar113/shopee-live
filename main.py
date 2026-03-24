@@ -16,7 +16,6 @@ async def main_loop(live, adb):
         else:
             live.waitToReceiveCoins()
             live.claimCoin()
-            live.validateClaimCoin()
         await asyncio.sleep(0.1)
 
 async def timeout_action():
