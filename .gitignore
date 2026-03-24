@@ -15,3 +15,6 @@
 # Arquivos PNG específicos
 !img/lives/claim_buttom_v2.png
 !img/lives/coin_v2.png
+
+#Claude Code
+!CLAUDE.md
