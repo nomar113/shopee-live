@@ -17,6 +17,7 @@
 # Arquivos PNG específicos
 !img/lives/claim_buttom_v2.png
 !img/lives/coin_v2.png
+!img/lives/watch_earn_banner.png
 
 # Configuração
 !pyproject.toml
