@@ -18,6 +18,13 @@ async def main_loop(live: Live) -> None:
         iteration += 1
         logger.info("=== Iteração %d (scrolls: %d/%d) ===", iteration, scroll_count, MAX_SCROLLS_BEFORE_RESET)
 
+        if not ADB.is_shopee_in_foreground():
+            logger.warning("App Shopee não está em primeiro plano — reabrindo...")
+            live.recover_to_lives()
+            scroll_count = 0
+            await asyncio.sleep(3)
+            continue
+
         if live.is_on_watch_earn_screen():
             live.back_to_lives()
             scroll_count = 0

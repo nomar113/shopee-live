@@ -56,7 +56,7 @@ def find_template(
         for row, col in zip(locations[0], locations[1])
     ]
 
-    logger.debug("Template %s: %d ocorrência(s) (threshold=%.2f)", template_path, len(matches), threshold)
+    logger.info("Template matching: %s → %d ocorrência(s) (threshold=%.2f)", template_path, len(matches), threshold)
     return matches
 
 
@@ -88,5 +88,5 @@ def extract_text_from_region(
     _, thresholded = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY_INV)
 
     text = pytesseract.image_to_string(thresholded).strip()
-    logger.debug("OCR região (%d,%d,%d,%d): '%s'", x, y, width, height, text)
+    logger.info("OCR região (%d,%d,%d,%d): '%s'", x, y, width, height, text)
     return text

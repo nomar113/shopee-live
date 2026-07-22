@@ -31,6 +31,7 @@ CLAIM_VALIDATION_H = 100
 
 MAX_TIMER_MINUTES = 15
 BUTTON_LOAD_DELAY = 10
+APP_OPEN_DELAY = 5
 
 
 class Live:
@@ -52,6 +53,14 @@ class Live:
         """Volta para a listagem de lives pressionando o botão voltar."""
         logger.info("Voltando para a tela de lives")
         ADB.press_back()
+
+    def recover_to_lives(self) -> None:
+        """Reabre o app Shopee e navega até a seção de lives."""
+        logger.info("Reabrindo app Shopee e navegando para lives...")
+        ADB.open_app()
+        logger.info("Aguardando %ds para o app carregar...", APP_OPEN_DELAY)
+        time.sleep(APP_OPEN_DELAY)
+        self.click_live_home()
 
     def click_live_home(self) -> None:
         """Toca no botão de lives na tela inicial."""

@@ -13,6 +13,8 @@ SWIPE_END_X = 500
 SWIPE_END_Y = 300
 SWIPE_DURATION_MS = 300
 
+SHOPEE_PACKAGE = "com.shopee.br"
+
 
 class ADB:
     def capture_screenshot(self, output_path: str = SCREENSHOT_PATH) -> bool:
@@ -68,6 +70,32 @@ class ADB:
             logger.info("Tap em (%d, %d)", x, y)
         except subprocess.CalledProcessError as error:
             logger.error("Erro ao executar tap(%d, %d): %s", x, y, error)
+
+    @staticmethod
+    def is_shopee_in_foreground() -> bool:
+        """Verifica se o app Shopee está em primeiro plano."""
+        result = subprocess.run(
+            ["adb", "shell", "dumpsys", "activity", "activities"],
+            capture_output=True,
+            text=True,
+        )
+        for line in result.stdout.splitlines():
+            if "mResumedActivity" in line and SHOPEE_PACKAGE in line:
+                logger.info("Shopee em primeiro plano")
+                return True
+        logger.warning("Shopee NÃO está em primeiro plano")
+        return False
+
+    @staticmethod
+    def open_app() -> None:
+        """Abre o app Shopee via ADB."""
+        logger.info("Abrindo app Shopee (%s)...", SHOPEE_PACKAGE)
+        command = ["adb", "shell", "monkey", "-p", SHOPEE_PACKAGE, "-c", "android.intent.category.LAUNCHER", "1"]
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            logger.info("App Shopee aberto com sucesso")
+        except subprocess.CalledProcessError as error:
+            logger.error("Erro ao abrir app Shopee: %s", error)
 
     @staticmethod
     def _run_shell_command(*args: str) -> None:
