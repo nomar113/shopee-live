@@ -19,6 +19,9 @@ WATCH_EARN_BANNER_THRESHOLD = 0.80
 LIVE_HOME_X = 560
 LIVE_HOME_Y = 147
 
+LIVE_NAV_X = 540
+LIVE_NAV_Y = 2250
+
 TIMER_REGION_X = 750
 TIMER_REGION_Y = 200
 TIMER_REGION_W = 285
@@ -60,7 +63,8 @@ class Live:
         ADB.open_app()
         logger.info("Aguardando %ds para o app carregar...", APP_OPEN_DELAY)
         time.sleep(APP_OPEN_DELAY)
-        self.click_live_home()
+        logger.info("Tocando em 'Live e Vídeo' na barra inferior (%d, %d)", LIVE_NAV_X, LIVE_NAV_Y)
+        ADB.tap(LIVE_NAV_X, LIVE_NAV_Y)
 
     def click_live_home(self) -> None:
         """Toca no botão de lives na tela inicial."""
