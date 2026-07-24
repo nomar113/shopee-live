@@ -135,6 +135,9 @@ class Live:
 
     def _validate_claim(self) -> None:
         """Verifica se o resgate falhou e rola para próxima live se necessário."""
+        # Wait for the snackbar to render after the tap (appears ~200-600ms after API response)
+        time.sleep(0.9)
+        self._adb.capture_screenshot()
         logger.info("Validando claim via OCR na região (%d,%d,%d,%d)", CLAIM_VALIDATION_X, CLAIM_VALIDATION_Y, CLAIM_VALIDATION_W, CLAIM_VALIDATION_H)
         text = extract_text_from_region(
             SCREENSHOT_PATH,
