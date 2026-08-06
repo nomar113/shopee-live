@@ -1,6 +1,9 @@
 import logging
+import os
 import re
+import shutil
 import time
+from datetime import datetime
 
 from ADB import ADB
 from vision import extract_text_from_region, find_template
@@ -8,6 +11,7 @@ from vision import extract_text_from_region, find_template
 logger = logging.getLogger(__name__)
 
 SCREENSHOT_PATH = "./img/screenshot.png"
+DEBUG_SCREENSHOT_DIR = "./img/debug"
 COIN_TEMPLATE_PATH = "./img/lives/coin_v2.png"
 CLAIM_BUTTON_TEMPLATE_PATH = "./img/lives/claim_buttom_v2.png"
 WATCH_EARN_BANNER_TEMPLATE_PATH = "./img/lives/watch_earn_banner.png"
@@ -135,8 +139,6 @@ class Live:
 
     def _validate_claim(self) -> None:
         """Verifica se o resgate falhou e rola para próxima live se necessário."""
-        # Wait for the snackbar to render after the tap (appears ~200-600ms after API response)
-        time.sleep(0.9)
         self._adb.capture_screenshot()
         logger.info("Validando claim via OCR na região (%d,%d,%d,%d)", CLAIM_VALIDATION_X, CLAIM_VALIDATION_Y, CLAIM_VALIDATION_W, CLAIM_VALIDATION_H)
         text = extract_text_from_region(
@@ -149,6 +151,16 @@ class Live:
         logger.info("OCR validação resultado: '%s'", text)
         if re.search(r"Resgate falhou", text):
             logger.info("Resgate FALHOU — passando para próxima live")
+            self._save_debug_screenshot("resgate_falhou")
             self._adb.scroll_up()
         else:
             logger.info("Validação OK (sem 'Resgate falhou')")
+
+    @staticmethod
+    def _save_debug_screenshot(label: str) -> None:
+        """Salva uma cópia persistente do screenshot atual, na sequência do clique em Resgatar."""
+        os.makedirs(DEBUG_SCREENSHOT_DIR, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        destination = os.path.join(DEBUG_SCREENSHOT_DIR, f"{label}_{timestamp}.png")
+        shutil.copy(SCREENSHOT_PATH, destination)
+        logger.info("Screenshot de debug salvo: %s", destination)

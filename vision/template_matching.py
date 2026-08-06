@@ -85,7 +85,7 @@ def extract_text_from_region(
 
     region = image[y : y + height, x : x + width]
     gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
-    _, thresholded = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY_INV)
+    _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     text = pytesseract.image_to_string(thresholded).strip()
     logger.info("OCR região (%d,%d,%d,%d): '%s'", x, y, width, height, text)
