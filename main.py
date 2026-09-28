@@ -1,7 +1,9 @@
 import asyncio
 import logging
+import time
 
 from ADB import ADB
+from colheita import Colheita
 from lives import Live
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -9,11 +11,16 @@ logger = logging.getLogger(__name__)
 
 MAX_SCROLLS_BEFORE_RESET = 10
 
+# Intervalo entre regas do jogo Colheita: 3h08min.
+WATER_INTERVAL_SECONDS = 3 * 3600 + 8 * 60
+MIN_COINS_TO_INTERRUPT_LIVE = 5
 
-async def main_loop(live: Live) -> None:
+
+async def main_loop(live: Live, colheita: Colheita) -> None:
     """Loop principal que percorre lives coletando moedas."""
     scroll_count = 0
     iteration = 0
+    last_water_time = time.monotonic()
     while True:
         iteration += 1
         logger.info("=== Iteração %d (scrolls: %d/%d) ===", iteration, scroll_count, MAX_SCROLLS_BEFORE_RESET)
@@ -25,11 +32,29 @@ async def main_loop(live: Live) -> None:
             await asyncio.sleep(3)
             continue
 
+        if live.is_on_exit_intent_popup():
+            live.dismiss_exit_intent_popup()
+            live.recover_to_lives()
+            scroll_count = 0
+            await asyncio.sleep(2)
+            continue
+
         if live.is_on_watch_earn_screen():
             live.back_to_lives()
             scroll_count = 0
             await asyncio.sleep(2)
             continue
+
+        if time.monotonic() - last_water_time >= WATER_INTERVAL_SECONDS:
+            pending_coins = live.get_pending_coin_count()
+            if pending_coins < MIN_COINS_TO_INTERRUPT_LIVE:
+                logger.info("Hora de regar a plantação (moedas pendentes na live: %d)", pending_coins)
+                colheita.water_plant()
+                scroll_count = 0
+                last_water_time = time.monotonic()
+                await asyncio.sleep(2)
+                continue
+            logger.info("Rega adiada — %d moedas pendentes na live, tentando novamente em breve", pending_coins)
 
         live.claim_coin()
 
@@ -53,7 +78,8 @@ async def main_loop(live: Live) -> None:
 async def main() -> None:
     adb = ADB()
     live = Live(adb)
-    await main_loop(live)
+    colheita = Colheita(adb)
+    await main_loop(live, colheita)
 
 
 if __name__ == "__main__":

@@ -15,10 +15,14 @@ DEBUG_SCREENSHOT_DIR = "./img/debug"
 COIN_TEMPLATE_PATH = "./img/lives/coin_v2.png"
 CLAIM_BUTTON_TEMPLATE_PATH = "./img/lives/claim_buttom_v2.png"
 WATCH_EARN_BANNER_TEMPLATE_PATH = "./img/lives/watch_earn_banner.png"
+EXIT_INTENT_BANNER_TEMPLATE_PATH = "./img/lives/exit_intent_banner.png"
+EXIT_INTENT_SAIR_LINK_TEMPLATE_PATH = "./img/lives/exit_intent_sair_link.png"
 
 COIN_THRESHOLD = 0.95
 CLAIM_BUTTON_THRESHOLD = 0.80
 WATCH_EARN_BANNER_THRESHOLD = 0.80
+EXIT_INTENT_BANNER_THRESHOLD = 0.80
+EXIT_INTENT_SAIR_LINK_THRESHOLD = 0.80
 
 LIVE_HOME_X = 560
 LIVE_HOME_Y = 147
@@ -35,6 +39,12 @@ CLAIM_VALIDATION_X = 207
 CLAIM_VALIDATION_Y = 1854
 CLAIM_VALIDATION_W = 680
 CLAIM_VALIDATION_H = 100
+
+PENDING_COIN_REGION_X = 800
+PENDING_COIN_REGION_Y = 550
+PENDING_COIN_REGION_W = 105
+PENDING_COIN_REGION_H = 85
+PENDING_COIN_OCR_CONFIG = "--psm 7 -c tessedit_char_whitelist=0123456789"
 
 MAX_TIMER_MINUTES = 15
 BUTTON_LOAD_DELAY = 10
@@ -60,6 +70,37 @@ class Live:
         """Volta para a listagem de lives pressionando o botão voltar."""
         logger.info("Voltando para a tela de lives")
         ADB.press_back()
+
+    def is_on_exit_intent_popup(self) -> bool:
+        """Verifica se o popup 'Antes de você ir...' está na tela.
+
+        Esse popup aparece ao sair de telas como 'Minhas Moedas' e bloqueia
+        o botão voltar, travando o bot fora das lives.
+        """
+        self._adb.capture_screenshot()
+        matches = find_template(SCREENSHOT_PATH, EXIT_INTENT_BANNER_TEMPLATE_PATH, EXIT_INTENT_BANNER_THRESHOLD)
+        found = len(matches) > 0
+        if found:
+            logger.info("Popup 'Antes de você ir...' detectado — fechando")
+        return found
+
+    def dismiss_exit_intent_popup(self) -> None:
+        """Fecha o popup 'Antes de você ir...' tocando em 'Sair >'.
+
+        O botão de fechar (X) apenas esconde o popup e mantém a tela atual;
+        'Sair >' é o que de fato confirma a saída que o botão voltar tentou fazer.
+        """
+        self._adb.capture_screenshot()
+        matches = find_template(SCREENSHOT_PATH, EXIT_INTENT_SAIR_LINK_TEMPLATE_PATH, EXIT_INTENT_SAIR_LINK_THRESHOLD)
+        if matches:
+            match = matches[0]
+            x = match.x + match.width // 2
+            y = match.y + match.height // 2
+            logger.info("Link 'Sair >' encontrado em (%d, %d) — clicando", x, y)
+            ADB.tap(x, y)
+        else:
+            logger.warning("Link 'Sair >' não encontrado — tentando voltar")
+            ADB.press_back()
 
     def recover_to_lives(self) -> None:
         """Reabre o app Shopee e navega até a seção de lives."""
@@ -93,6 +134,25 @@ class Live:
         found = len(matches) > 0
         logger.info("Moeda %s (%d match(es))", "ENCONTRADA" if found else "NÃO encontrada", len(matches))
         return found
+
+    def get_pending_coin_count(self) -> int:
+        """Lê via OCR a quantidade de moedas pendentes no banner 'Assista e Ganhe'.
+
+        Retorna 0 quando o banner não está visível (nada a perder ao sair da live).
+        """
+        self._adb.capture_screenshot()
+        text = extract_text_from_region(
+            SCREENSHOT_PATH,
+            PENDING_COIN_REGION_X,
+            PENDING_COIN_REGION_Y,
+            PENDING_COIN_REGION_W,
+            PENDING_COIN_REGION_H,
+            config=PENDING_COIN_OCR_CONFIG,
+        )
+        logger.info("OCR moedas pendentes: '%s'", text)
+        if not text.isdigit():
+            return 0
+        return int(text)
 
     def wait_to_receive_coins(self) -> None:
         """Lê o timer de countdown via OCR e aguarda o tempo indicado."""

@@ -66,6 +66,7 @@ def extract_text_from_region(
     y: int,
     width: int,
     height: int,
+    config: str = "",
 ) -> str:
     """Extrai texto de uma região da imagem usando OCR (Tesseract).
 
@@ -75,6 +76,7 @@ def extract_text_from_region(
         y: Coordenada Y do canto superior esquerdo.
         width: Largura da região.
         height: Altura da região.
+        config: Configuração extra do Tesseract (ex.: psm/whitelist de dígitos).
 
     Returns:
         Texto extraído da região.
@@ -87,6 +89,6 @@ def extract_text_from_region(
     gray = cv2.cvtColor(region, cv2.COLOR_BGR2GRAY)
     _, thresholded = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-    text = pytesseract.image_to_string(thresholded).strip()
+    text = pytesseract.image_to_string(thresholded, config=config).strip()
     logger.info("OCR região (%d,%d,%d,%d): '%s'", x, y, width, height, text)
     return text

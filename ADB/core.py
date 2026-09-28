@@ -52,6 +52,16 @@ class ADB:
         )
 
     @staticmethod
+    def swipe(x1: int, y1: int, x2: int, y2: int, duration_ms: int = 300) -> None:
+        """Executa swipe entre dois pontos arbitrários do dispositivo."""
+        command = ["adb", "shell", "input", "swipe", str(x1), str(y1), str(x2), str(y2), str(duration_ms)]
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            logger.info("Swipe de (%d, %d) para (%d, %d)", x1, y1, x2, y2)
+        except subprocess.CalledProcessError as error:
+            logger.error("Erro ao executar swipe (%d,%d)->(%d,%d): %s", x1, y1, x2, y2, error)
+
+    @staticmethod
     def press_back() -> None:
         """Pressiona o botão voltar do Android."""
         command = ["adb", "shell", "input", "keyevent", "4"]
@@ -96,6 +106,17 @@ class ADB:
             logger.info("App Shopee aberto com sucesso")
         except subprocess.CalledProcessError as error:
             logger.error("Erro ao abrir app Shopee: %s", error)
+
+    @staticmethod
+    def close_app() -> None:
+        """Força o fechamento do app Shopee via ADB."""
+        logger.info("Fechando app Shopee (%s)...", SHOPEE_PACKAGE)
+        command = ["adb", "shell", "am", "force-stop", SHOPEE_PACKAGE]
+        try:
+            subprocess.run(command, check=True, capture_output=True, text=True)
+            logger.info("App Shopee fechado com sucesso")
+        except subprocess.CalledProcessError as error:
+            logger.error("Erro ao fechar app Shopee: %s", error)
 
     @staticmethod
     def _run_shell_command(*args: str) -> None:

@@ -10,14 +10,20 @@
 !ADB/
 !lives/
 !vision/
+!colheita/
 !shopee-candy/
 !img/
 !img/lives/
+!img/colheita/
 
 # Arquivos PNG específicos
 !img/lives/claim_buttom_v2.png
 !img/lives/coin_v2.png
 !img/lives/watch_earn_banner.png
+!img/lives/exit_intent_banner.png
+!img/lives/exit_intent_sair_link.png
+!img/colheita/colheita_icon.png
+!img/colheita/regador.png
 
 # Configuração
 !pyproject.toml
